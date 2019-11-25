@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() => runApp(MyApp());
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    new FlutterLocalNotificationsPlugin();
+
+void main() {
+  // local-norifications初期化 *main関数 or 最初に表示されるページで実行できる
+  var initializationSettingsAndroid =
+      new AndroidInitializationSettings('app_icon');
+  var initializationSettingsIOS = IOSInitializationSettings(
+      onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+  var initializationSettings = InitializationSettings(
+      initializationSettingsAndroid, initializationSettingsIOS);
+  flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onSelectNotification: onSelectNotification);
+  runApp(MyApp());
+}
+
+Future onDidReceiveLocalNotification(
+    int id, String title, String body, String payload) async {
+  print('onDidReceiveLocalNotification');
+}
+
+Future onSelectNotification(String payload) async {
+  print('onSelectNotification');
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -27,12 +50,23 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  void _onTap() async {
+    print('onTap');
+    await new Future.delayed(new Duration(seconds: 5));
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+        0, 'plain title', 'plain body', platformChannelSpecifics,
+        payload: 'item x');
+  }
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -42,23 +76,16 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
+        child: RaisedButton(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(Icons.check),
+              Text('Push通知を送る'),
+            ],
+          ),
+          onPressed: _onTap,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
