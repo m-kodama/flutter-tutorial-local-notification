@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onTap() async {
     print('onTap');
     // 5秒待つ
-    await new Future.delayed(new Duration(seconds: 5));
+    await new Future.delayed(new Duration(seconds: 3));
     // push通知を表示する
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'your channel id', 'your channel name', 'your channel description',
